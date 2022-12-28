@@ -1,14 +1,13 @@
 import css from './ImageGallery.module.css';
+import PropTypes from 'prop-types';
 import { ImageGalleryItem } from '../ImageGalleryItem/ImageGalleryItem';
 
-export const ImageGallery = ({ galleryItems, showModal }) => {
+export const ImageGallery = ({ galleryItems }) => {
   return (
     <ul className={css.ImageGallery}>
       {galleryItems.map(item => (
         <ImageGalleryItem
-          item={item}
           key={item.id}
-          showModal={showModal}
           webformatURL={item.webformatURL}
           tags={item.tags}
           largeImageURL={item.largeImageURL}
@@ -16,4 +15,8 @@ export const ImageGallery = ({ galleryItems, showModal }) => {
       ))}
     </ul>
   );
+};
+
+ImageGallery.propTypes = {
+  galleryItems: PropTypes.array.isRequired,
 };

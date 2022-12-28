@@ -7,7 +7,6 @@ import { Searchbar } from './Searchbar/Searchbar';
 import { ImageGallery } from './ImageGallery/ImageGallery';
 import { Button } from './Button/Button';
 import { ImageSkeleton } from './ImageSkeleton';
-// import { Modal } from './Modal/Modal';
 
 export class App extends Component {
   state = {
@@ -15,55 +14,33 @@ export class App extends Component {
     searchText: '',
     imageItems: [],
     isLoading: false,
-    showModal: false,
-    totalHits: 0,
   };
 
-  componentDidUpdate(_, prevState) {
+  async componentDidUpdate(_, prevState) {
     const { searchText, page } = this.state;
-
-    if (prevState.searchText !== searchText) {
-      this.setState({
-        imageItems: [],
-      });
-    }
     try {
       if (prevState.page !== page || prevState.searchText !== searchText) {
         this.setState({
           isLoading: true,
         });
+        await fetch(
+          `${API_BASE_URL}?key=${API_KEY}&q=${searchText}&image_type=photo&orientation=horizontal&safesearch=true&page=${page}&per_page=12`
+        )
+          .then(res => res.json())
+          .then(data =>
+            this.setState(result => ({
+              imageItems: [...result.imageItems, ...data.hits],
+              isLoading: false,
+            }))
+          );
       }
-      fetch(
-        `${API_BASE_URL}?key=${API_KEY}&q=${searchText}&image_type=photo&orientation=horizontal&safesearch=true&page=${page}&per_page=12`
-      )
-        .then(res => res.json())
-        .then(data =>
-          this.setState(result => ({
-            imageItems: [...result.imageItems, ...data.hits],
-            isLoading: false,
-            totalHits: data.totalHits,
-          }))
-        );
     } catch {
       toast.error('🦄 something goes wrong =(');
     }
   }
 
-  // notify = (text = '🦄 Wow so easy!') => {
-  //   toast(text, {
-  //     position: 'top-right',
-  //     autoClose: 3000,
-  //     hideProgressBar: false,
-  //     closeOnClick: true,
-  //     pauseOnHover: true,
-  //     draggable: true,
-  //     progress: undefined,
-  //     theme: 'light',
-  //   });
-  // };
-
   handleSubmit = searchText => {
-    this.setState({ searchText: searchText, page: 1 });
+    this.setState({ searchText: searchText, page: 1, imageItems: [] });
   };
 
   loadMore = () => {
@@ -78,13 +55,8 @@ export class App extends Component {
       <section className={css.App}>
         <Searchbar onSubmit={this.handleSubmit} />
         {error && <p>{toast.error('🦄 something goes wrong =(')}</p>}
-        {isLoading && <ImageSkeleton position="center" />}
-        {imageItems && (
-          <ImageGallery
-            galleryItems={imageItems}
-            showModal={this.state.showModal}
-          />
-        )}
+        {isLoading && <ImageSkeleton />}
+        {imageItems && <ImageGallery galleryItems={imageItems} />}
 
         {imageItems.length >= 12 && <Button onClick={this.loadMore} />}
 
